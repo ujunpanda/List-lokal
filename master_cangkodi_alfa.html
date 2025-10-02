@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CANGKUDU-SAT TV Player — Overlay Sinyal</title>
+  <style>
+    :root {
+      --bg:#0b0f17; --panel:#121826; --muted:#6b7280; --text:#e5e7eb; --accent:#82d173;
+      --danger:#ef4444; --warn:#f59e0b; --ok:#22c55e; --border:#1f2937;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Segoe UI,Roboto,Ubuntu,Inter,Arial,sans-serif}
+    .app{display:grid;grid-template-columns:320px 1fr;grid-template-rows:auto 1fr auto; height:100vh}
+    header{grid-column:1/3;display:flex;gap:.75rem;align-items:center;padding:.75rem 1rem;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#0e1420,#0b0f17)}
+    header h1{font-size:1rem;margin:0;letter-spacing:.2px;color:#cbd5e1}
+    header .hint{margin-left:auto;font-size:.85rem;color:var(--muted)}
+    .sidebar{border-right:1px solid var(--border);background:var(--panel);padding:.75rem;overflow:auto}
+    .sidebar .controls{display:grid;gap:.5rem;margin-bottom:.75rem}
+    .sidebar textarea{width:100%;min-height:120px;background:#0d1422;color:var(--text);border:1px solid var(--border);border-radius:.5rem;padding:.5rem;font-size:.85rem}
+    .sidebar button, .sidebar input[type="file"]{background:#1f2937;color:#e5e7eb;border:1px solid var(--border);border-radius:.5rem;padding:.5rem .75rem;cursor:pointer}
+    .sidebar button:hover{background:#273244}
+    .playlist{display:grid;gap:.25rem}
+    .ch{display:flex;align-items:center;gap:.5rem;padding:.5rem;border:1px solid var(--border);border-radius:.5rem;background:#0e1626;cursor:pointer}
+    .ch:hover{background:#132036}
+    .ch.active{outline:2px solid #2563eb;background:#0f1b33}
+    .ch .name{font-weight:600}
+    .signal-osd {
+      position: absolute;
+      bottom: 10%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: clamp(300px, 50vw, 500px);
+      background: rgba(8, 12, 20, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: var(--text);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+      display: none;
+      z-index: 50;
+      animation: fadeIn 0.2s ease;
+    }
+    .osd-title {
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 8px;
+      font-size: .85rem;
+    }
+    .osdChannelName {
+      font-weight: 700;
+      text-align: left ;
+      margin-bottom: 8px;
+      font-size: larger;
+    }
+    .osd-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 50px;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: .85rem;
+    }
+    .osd-bar {
+      background: #1f2937;
+      border-radius: 4px;
+      overflow: hidden;
+      height: 10px;
+      border: 1px solid #111827;
+    }
+    .osd-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .osd-strength { background: #3b82f6; } /* Biru */
+    .osd-quality { background: #22c55e; }  /* Hijau */
+    .osd-ber { background: #22c55e; }      /* Hijau */
+    @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+
+    
+    .main{position:relative;background:#04070d;display:grid;grid-template-rows:1fr auto}
+    video{width:100%;height:100%;background:black}
+    .controls-bar{display:flex;gap:.5rem;align-items:center;padding:.5rem;border-top:1px solid var(--border);background:#0f172a}
+    .controls-bar button{background:#1f2937;border:1px solid var(--border);color:#e5e7eb;border-radius:.5rem;padding:.4rem .6rem;cursor:pointer}
+    .controls-bar button:hover{background:#273244}
+    .controls-bar .sp{flex:1}
+    
+    .bubble-center{position:absolute;inset:0;display:none;place-items:center;pointer-events:none}
+    .bubble-center.show{display:grid}
+    .bubble{min-width:320px;max-width:70vw;background:rgba(10,16,26,.94);border:1px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.4);text-align:center}
+    .ch.new{outline:2px dashed #82d173}
+
+    /* Overlay status */
+
+    .overlay{position:absolute;inset:0;pointer-events:none;display:none; z-index:10;}
+    .controls-bar{ z-index:5; }
+    .overlay.show{display:block}
+    .ov-banner{
+      position:absolute; left:50%; bottom:5%;
+      transform:translateX(-50%);
+      background:rgba(8,12,20,.9); border:1px solid var(--border);
+      border-radius:10px; padding:.4rem .7rem;
+      display:none; align-items:center; gap:.5rem; z-index:11;
+    }
+    .bn-logo{width:22px;height:22px;object-fit:cover;border-radius:4px;border:1px solid var(--border)}
+
+    .ov-wrap {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%); /* Pusatkan secara horizontal & vertikal */
+      width: clamp(420px, 40vw, 640px);
+      background: rgba(8,12,20,.9);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      backdrop-filter: blur(6px);
+    }
+
+
+    .ov-hd{display:flex;align-items:center;gap:.5rem;padding:.6rem .75rem;border-bottom:1px solid var(--border)}
+    .ov-hd .logo{width:24px;height:24px;border-radius:4px;object-fit:cover;display:none;border:1px solid var(--border)}
+    .badge{font-size:.7rem;padding:.15rem .45rem;border:1px solid var(--border);border-radius:.4rem;color:#cbd5e1;background:#0d1320}
+    .ov-title{font-weight:700}
+    .ov-body{padding:.6rem .75rem;display:grid;gap:.5rem}
+    .kv{display:flex;justify-content:space-between;font-size:.9rem;color:#cbd5e1}
+    .muted{color:var(--muted)}
+    .bars{display:flex;gap:4px}
+    .bar{width:8px;height:18px;background:#1f2937;border-radius:2px;border:1px solid #111827}
+    .bar.on.ok{background:var(--ok)}
+    .bar.on.warn{background:var(--warn)}
+    .bar.on.bad{background:var(--danger)}
+    .meter{height:8px;background:#0d1320;border-radius:999px;border:1px solid var(--border);overflow:hidden}
+    .fill{height:100%;background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444);transform-origin:left center;width:0%}
+
+    .toast{position:absolute;bottom:16px;left:16px;background:#0d1320;border:1px solid var(--border);border-radius:10px;padding:.5rem .75rem;color:#cbd5e1;opacity:.95}
+    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#111827;border:1px solid #1f2937;border-bottom-color:#0b1220;border-radius:6px;padding:0 .35rem;margin:0 .1rem}
+      /*<!-- CSS untuk splash (opsional bisa taruh eksternal) -->*/
+      <style>
+        #splash-img {
+          position: fixed;
+          top: 0; left: 0;
+          width: 100vw;
+          height: 100vh;
+          background-image: url('CangKodi.jpg');
+          background-size: cover;      /* Pastikan isi penuh tanpa celah */
+          background-position: center;
+          background-repeat: no-repeat;
+          z-index: 9999;
+      </style>
+  </style>
+</head>
+<body>
+    <!-- 1. Splash image -->
+  <img id="splash-img" src="CangKodi.jpg" alt="Boot CangKodi" />
+
+  <!-- 2. IPTV Player Container (sembunyi dulu) -->
+  <div id="iptv-player" style="display: none;">
+    <!-- Video player, iframe, atau canvas overlay Irfan -->
+  </div>
+
+  <!-- 3. Script untuk transisi splash ke player -->
+  <script>
+    setTimeout(() => {
+      const splash = document.getElementById('splash-img');
+      const player = document.getElementById('iptv-player');
+      if (splash) splash.style.display = 'none';
+      if (player) player.style.display = 'block';
+    }, 8000); // delay 3 detik
+  </script>
+  <div class="app">
+    <header>
+      <h1>CANGKODISAT DIGITAL IPTV Player</h1>
+      <div class="hint">Tombol cepat: <span class="kbd">O</span> Overlay · <span class="kbd">[</span>/<span class="kbd">]</span> Channel · <span class="kbd">Space</span> Play/Pause · <span class="kbd">F</span> Fullscreen · <span class="kbd">M</span> Mute</div>
+    </header>
+    <aside class="sidebar">
+      <div class="controls">
+        <input id="m3uFile" type="file" accept=".m3u,.m3u8,text/plain" />
+        <button id="loadFileBtn">Muat M3U</button>
+        <button id="saveLocalBtn">Simpan Playlist</button>
+        <button id="loadLocalBtn">Muat Playlist</button>
+        <textarea id="m3uText" placeholder="#EXTM3U\n#EXTINF:-1 tvg-id=...,Channel Demo\nhttps://example.com/stream.m3u8"></textarea>
+        <button id="parseTextBtn">Parse Dari Teks</button>
+      </div>
+      <div class="playlist" id="playlist"></div>
+    </aside>
+    <main class="main">
+      <video id="video" controls playsinline></video>
+      <div class="overlay" id="overlay">
+        <div class="ov-wrap">
+          <div class="ov-hd"><img id="ovLogo" class="logo" alt="" /><span class="badge">OSD INFO</span><div class="ov-title" id="ovTitle">—</div></div>
+          <div class="ov-banner" id="ovBanner">
+            <img id="bnLogo" class="bn-logo" alt="">
+            <span id="bnName">—</span>
+          </div>
+          <div class="ov-body">
+            <!-- <div class="kv"><span>URL</span><span class="muted" id="ovUrl"></span></div> -->
+            <div class="kv"><span>Ping RTT</span><span id="ovPing">—</span></div>
+            <div class="kv"><span>Jitter</span><span id="ovJitter">—</span></div>
+            <div class="kv"><span>BER (est.)</span><span id="ovBER">—</span></div>
+            <div class="kv"><span>Buffer</span><span id="ovBuffer">—</span></div>
+            <div class="kv"><span>Frame Drop</span><span id="ovDrops">—</span></div>
+            <div class="kv"><span>Resolusi</span><span id="ovRes">—</span></div>
+            <div class="kv"><span>Bitrate (perkiraan)</span><span id="ovBit">—</span></div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:4px"><span>Kekuatan Sinyal</span><span id="ovSigLabel">—</span></div>
+              <div class="bars" id="sigBars"></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:4px"><span>Intensitas (Buffer)</span><span id="ovIntLabel">—</span></div>
+              <div class="meter"><div class="fill" id="intFill" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="toast" id="toast" style="display:none"></div>
+      <div class="bubble-center" id="centerBubble">
+        <div class="bubble">
+          <h4>Tidak ada sinyal</h4>
+            <p id="centerBubbleMsg">Buffer sangat rendah / jaringan lambat. Memeriksa kembali…</p>
+        </div>
+      </div>
+      <div class="controls-bar">
+        <button id="prevBtn">⟨</button>
+        <button id="playBtn">▶︎/⏸</button>
+        <button id="nextBtn">⟩</button>
+        <div class="sp"></div>
+        <button id="pipBtn">PiP</button>
+        <button id="fsBtn">Full</button>
+        <button id="ovBtn">Overlay</button>
+      </div>
+      <div class="signal-osd" id="signalOSD">
+      <!-- <div class="osd-title">Indikator Sinyal</div> -->
+      <div class="osdChannelName">
+        <div id="osdChannelName">-</div>
+      </div>
+      <div class="osd-row">
+        <span>Kekuatan</span>
+        <div class="osd-bar"><div class="osd-fill osd-strength"></div></div>
+        <span id="osdStrengthVal">0%</span>
+      </div>
+      <div class="osd-row">
+        <span>Kualitas</span>
+        <div class="osd-bar"><div class="osd-fill osd-quality"></div></div>
+        <span id="osdQualityVal">0%</span>
+      </div>
+      <div class="osd-row">
+        <span>BER</span>
+        <div class="osd-bar"><div class="osd-fill osd-ber"></div></div>
+        <span id="osdBERVal">—</span>
+      </div>
+    </div>
+    </main>
+    <footer style="grid-column:1/3;border-top:1px solid var(--border);padding:.5rem 1rem;color:var(--muted);font-size:.85rem">
+      Catatan: Ping via fetch mungkin terblokir CORS. Jika demikian, indikator akan memakai kesehatan buffer & drop frame sebagai estimasi sinyal.
+    </footer>
+  </div>
+
+  <!-- hls.js -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
+  <script>
+  (function(){
+    const video = document.getElementById('video');
+    const playlistEl = document.getElementById('playlist');
+    const overlay = document.getElementById('overlay');
+    const ovTitle = document.getElementById('ovTitle');
+    const ovUrl = document.getElementById('ovUrl');
+    const ovPing = document.getElementById('ovPing');
+    const ovJitter = document.getElementById('ovJitter');
+    const ovBER = document.getElementById('ovBER');
+    const ovLogo = document.getElementById('ovLogo');
+    const ovBuffer = document.getElementById('ovBuffer');
+    const ovDrops = document.getElementById('ovDrops');
+    const ovRes = document.getElementById('ovRes');
+    const ovBit = document.getElementById('ovBit');
+    const sigBars = document.getElementById('sigBars');
+    const ovSigLabel = document.getElementById('ovSigLabel');
+    const ovIntLabel = document.getElementById('ovIntLabel');
+    const intFill = document.getElementById('intFill');
+    const toast = document.getElementById('toast');
+    const ovBanner = document.getElementById('ovBanner');
+    const bnLogo = document.getElementById('bnLogo');
+    const bnName = document.getElementById('bnName');
+    let bnTimer=null;
+
+    function showBanner(name, logo){    //ambil nama dan logo
+      bnName.textContent = name || '—';
+      if(logo){ bnLogo.src = logo; bnLogo.style.display='block'; }
+      else { bnLogo.style.display='none'; }
+      ovBanner.style.display='flex';
+      clearTimeout(bnTimer);
+      bnTimer = setTimeout(()=>{ ovBanner.style.display='none'; }, 3000);
+    }
+
+    function showSignalOSD(name) {
+      const osd = document.getElementById('signalOSD');
+      const strengthVal = document.getElementById('osdStrengthVal');
+      const qualityVal = document.getElementById('osdQualityVal');
+      const berVal = document.getElementById('osdBERVal');
+
+      // Ambil nilai real-time dari overlay
+      const sigText = ovSigLabel.textContent || '—';
+      const bufText = ovIntLabel.textContent || '—';
+      const berText = ovBER.textContent || '—';
+
+      // Parsing persen kekuatan
+      let sigPct = 0;
+      if (sigText.includes('KUAT')) sigPct = 80;
+      else if (sigText.includes('SEDANG')) sigPct = 50;
+      else if (sigText.includes('LEMAH')) sigPct = 20;
+
+      let bufPct = 0;
+      if (bufText.includes('Tinggi')) bufPct = 80;
+      else if (bufText.includes('Sedang')) bufPct = 50;
+      else if (bufText.includes('Rendah')) bufPct = 20;
+
+      // Set value
+      strengthVal.textContent = sigPct + '%';
+      qualityVal.textContent = bufPct + '%';
+      berVal.textContent = berText;
+
+      // Set bar width
+      osd.querySelector('.osd-strength').style.width = sigPct + '%';
+      osd.querySelector('.osd-quality').style.width = bufPct + '%';
+      osd.querySelector('.osd-ber').style.width = '100%'; // BER bar full, warna bisa ubah sesuai nilai
+
+      // Tampilkan
+      osd.style.display = 'block';
+      clearTimeout(showSignalOSD._t);
+      showSignalOSD._t = setTimeout(() => { osd.style.display = 'none'; }, 15000);
+    }
+
+    //Fetch Playlist
+    const m3uFile = document.getElementById('m3uFile');
+    const loadFileBtn = document.getElementById('loadFileBtn');
+    const saveLocalBtn = document.getElementById('saveLocalBtn');
+    const loadLocalBtn = document.getElementById('loadLocalBtn');
+    const m3uText = document.getElementById('m3uText');
+    const parseTextBtn = document.getElementById('parseTextBtn');
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const playBtn = document.getElementById('playBtn');
+    const fsBtn = document.getElementById('fsBtn');
+    const ovBtn = document.getElementById('ovBtn');
+    const pipBtn = document.getElementById('pipBtn');// Tombol PiP
+
+    const MAX_BARS = 8; // seperti receiver DVB-S
+    for(let i=0;i<MAX_BARS;i++){ const b=document.createElement('div'); b.className='bar'; sigBars.appendChild(b); }
+
+    let hls = null;
+    let channels = [];
+    let currentIndex = -1;
+    let prevDisplayed = 0;
+    let infoMode = 2; // 0=OFF, 1=MINI (nama+bars), 2=FULL (semua metrik)
+    let displayedLevel = 0; // global, dipakai updateOverlay & playIndex
+
+    // Contoh default (bisa dihapus)
+    const demoM3U = `#EXTM3U\n#EXTINF:10,SMTV SUMEDANG
+    #EXTVLCOPT:network-caching=1000
+    \nhttps://e.siar.us/live/smtv.m3u8
+    \n#EXTINF:-1 tvg-id=Demo2, Tears of Steel
+    \nhttps://test-streams.mux.dev/test_001/stream.m3u8
+    #EXTINF:30,MAGNA CHANNEL
+#EXTVLCOPT:network-caching=1000
+https://edge.medcom.id/live-edge/smil:magna.smil/playlist.m3u8
+    \n`;
+    m3uText.value = demoM3U;
+    parseM3UText(demoM3U);
+
+    function showToast(txt){
+      toast.textContent = txt; toast.style.display='block';
+      clearTimeout(showToast._t); showToast._t = setTimeout(()=>toast.style.display='none',2200);
+    }
+
+    function parseM3UText(text){// Fungsi untuk mengurai teks M3U menjadi daftar channel
+      const lines = text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+      const out = [];
+      let name = null;
+      let lastAttrs = null;
+      for(const line of lines){
+        if(line.startsWith('#EXTINF')){
+          // Tangkap nama + atribut (tvg-logo, dsb.)
+          const m = line.match(/^#EXTINF:([^,]*),(.*)$/);
+          const attrStr = m ? (m[1]||'') : '';
+          name = m ? (m[2]||'Channel').trim() : 'Channel';
+          // Simpan atribut untuk dipakai di URL berikutnya
+          lastAttrs = {};
+          attrStr.replace(/(\w+?)="([^"]*)"/g, (_,k,v)=>{ lastAttrs[k]=v; });
+        } else if(!line.startsWith('#')) {
+          out.push({
+            name: name || ('Channel '+(out.length+1)),
+            url: line,
+            logo: (lastAttrs && (lastAttrs['tvg-logo']||lastAttrs['logo'])) || null
+          });
+          name = null; lastAttrs = null;
+        }
+      }
+      channels = out;
+      renderPlaylist();
+      if(out.length && currentIndex===-1){ playIndex(0); }
+    }
+
+    function renderPlaylist(){
+      playlistEl.innerHTML = '';
+      channels.forEach((ch,idx)=>{
+        const el = document.createElement('div'); el.className = 'ch'+(idx===currentIndex?' active':'');
+        const n = document.createElement('div'); n.className='name'; n.textContent = ch.name; el.appendChild(n);
+        const u = document.createElement('div'); u.className='muted'; u.style.fontSize='.8rem'; u.textContent = ch.url; el.appendChild(u);
+        el.onclick = ()=>playIndex(idx);
+        playlistEl.appendChild(el);
+      });
+    }
+
+    function destroyHls(){ if(hls){ hls.destroy(); hls=null; } }
+    
+    function playIndex(idx){
+    displayedLevel = 0;
+    if(idx<0||idx>=channels.length) return;
+    currentIndex = idx; renderPlaylist();
+    const {name,url,logo} = channels[idx];
+    ovTitle.textContent = name || '—';
+    // ovUrl.textContent = url || '—';
+    if(logo){ 
+      ovLogo.src = logo; 
+      ovLogo.style.display='block'; 
+      ovLogo.alt = name || 'Logo'; 
+    } else { 
+      ovLogo.src = ''; // Hapus logo jika tidak ada
+      ovLogo.style.display='block'; // Tampilkan logo kosong
+      ovLogo.alt = 'Logo tidak tersedia'; 
+    }
+    ovTitle/logo //menampilkan nama , url dan logo
+    displayedLevel = 0; prevDisplayed = 0;
+    // showToast('Memuat: '+(name||'Channel'));
+    showSignalOSD(name);
+    
+    // OSD CHANNEL NAME JIGA PARABOLA
+    document.getElementById('osdChannelName').textContent = name || '-';
+    destroyHls();
+    if (Hls.isSupported()){
+      hls = new Hls({ enableWorker:true, lowLatencyMode:true });
+      hls.loadSource(url); hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, ()=> video.play().catch(()=>{}));
+      hls.on(Hls.Events.LEVEL_SWITCHED, (_,data)=>{
+        const level = hls.levels?.[data.level];
+        if(level){ 
+          const br = Math.round((level.bitrate||0)/1000);
+          ovBit.textContent = br? br+' kbps':'—'; 
+        } else {
+          ovBit.textContent = '—';
+        }
+      });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl'))
+      {
+        video.src = url; 
+        video.addEventListener('loadedmetadata', ()=>video.play().catch(()=>{}),{once:true});
+      }
+      else {
+        showToast('Browser tidak mendukung HLS');
+        return;
+      }
+    }
+
+//Keyboard shortcuts
+    document.addEventListener('keydown', (e)=>{
+      if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+      if(e.key==='o' || e.key==='O') toggleOverlay();
+      else if(e.key===']') next();
+      else if(e.key==='[') prev();
+      else if(e.key===' ') { e.preventDefault(); if(video.paused) video.play(); else video.pause(); }
+      else if(e.key==='f' || e.key==='F') toggleFullscreen();
+      else if(e.key==='m' || e.key==='M') video.muted = !video.muted;
+      else if(e.key==='+') video.volume=Math.min(1,video.volume+0.1);
+      else if(e.key==='-') video.volume=Math.max(0,video.volume-0.1);
+      else if(e.key==='ArrowRight') video.currentTime += 5;
+      else if(e.key==='ArrowLeft') video.currentTime -= 5;
+      else if(e.key==='i' || e.key==='I'){ infoMode = (infoMode + 1) % 3;
+       // tampil/format sesuai mode
+      if (infoMode === 0) {
+        overlay.classList.remove('show');
+        } else {
+          overlay.classList.add('show');
+          applyInfoMode();
+        }
+      }
+    });
+
+    document.addEventListener('fullscreenchange', ()=>{
+    if (document.fullscreenElement) {
+      if(infoMode===0) infoMode=1; // paksa MINI saat fullscreen
+      overlay.classList.add('show');
+      applyInfoMode();
+    }
+  });
+
+
+    prevBtn.onclick = prev; nextBtn.onclick = next; playBtn.onclick=()=> video.paused?video.play():video.pause();
+    fsBtn.onclick = toggleFullscreen; ovBtn.onclick=toggleOverlay;
+    pipBtn.onclick = async()=>{ if(document.pictureInPictureEnabled && !video.disablePictureInPicture) { try{ await video.requestPictureInPicture(); }catch(e){ showToast('PiP gagal: '+e.message); } } };
+    function next(){ if(channels.length) playIndex((currentIndex+1)%channels.length); }
+    function prev(){ if(channels.length) playIndex((currentIndex-1+channels.length)%channels.length); }
+    function toggleFullscreen(){
+      const el = document.querySelector('.main'); // <— container video + overlay
+      if(!document.fullscreenElement) el.requestFullscreen().catch(()=>{});
+      else document.exitFullscreen();
+    }
+    function toggleOverlay(){
+      // Siklus mode info
+      infoMode = (infoMode + 1) % 3;
+
+      // Tampilkan/format sesuai mode
+      if (infoMode === 0) {
+        overlay.classList.remove('show');
+      } else {
+        overlay.classList.add('show');
+        applyInfoMode();
+      }
+    }
+
+
+    // Ping & QoS monitor
+    // setelah const ovLogo = ...; tepat di bawah kumpulan getElementById
+    let audioCtx = null;
+    function beep(){
+      try{
+        audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        o.type='sine'; o.frequency.value = 1400;
+        o.connect(g); g.connect(audioCtx.destination);
+        const t = audioCtx.currentTime;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.2, t+0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, t+0.12);
+        o.start(); o.stop(t+0.14);
+      }catch(e){}
+    }
+    let pingSamples = []; // ms
+    let lastRTT = null; let lastPingAt = 0;
+    async function doPing(){
+      const ch = channels[currentIndex]; if(!ch) return;
+      const target = ch.url + (ch.url.includes('?')?'&':'?')+'t=' + Date.now();
+      let t0 = performance.now(); let ok=true; let rtt=null;
+      try{
+        const ctrl = new AbortController(); const to = setTimeout(()=>ctrl.abort(), 3000);
+        const res = await fetch(target, { method:'GET', cache:'no-store', signal: ctrl.signal, mode:'cors' });
+        clearTimeout(to);
+        if(!res.ok) ok=false;
+        rtt = performance.now() - t0;
+      }catch(e){ ok=false; rtt = null; }
+      if(ok && rtt!=null){
+        lastRTT = rtt; lastPingAt = Date.now();
+        pingSamples.push(rtt); if(pingSamples.length>10) pingSamples.shift();
+      } else {
+        // no CORS/blocked — decay lastRTT slowly
+        if(lastRTT!=null) lastRTT = Math.min(lastRTT*1.1, 5000);
+      }
+      updateOverlay();
+    }
+
+    function getJitter(){
+      if(pingSamples.length<2) return null;
+      let diffs = 0; for(let i=1;i<pingSamples.length;i++){ diffs += Math.abs(pingSamples[i]-pingSamples[i-1]); }
+      return diffs/(pingSamples.length-1);
+    }
+
+    function bufferLen(){
+      try{ const bt = video.buffered; const ct = video.currentTime; for(let i=0;i<bt.length;i++){ if(bt.start(i)<=ct && ct<=bt.end(i)) return bt.end(i)-ct; } return 0; }catch(e){ return 0; }
+    }
+
+    function droppedFrames(){
+      const q = video.getVideoPlaybackQuality?.();
+      return q? q.droppedVideoFrames : (video.webkitDecodedFrameCount? (video.webkitDroppedFrameCount||0) : 0);
+    }
+
+    function estimateSignalLevel(){
+      // Map latency to 0..1. If no RTT, use buffer health heuristic
+      let lq;
+      if(lastRTT!=null) {
+        // 40ms => 1.0, 80ms => 0.85, 150ms => 0.6, 300ms => 0.3, >600ms => 0.1
+        const ms = lastRTT;
+        if(ms<=40) lq=1; else if(ms<=80) lq=0.85; else if(ms<=150) lq=0.6; else if(ms<=300) lq=0.3; else if(ms<=600) lq=0.15; else lq=0.08;
+      } else {
+        const b = bufferLen(); // 0..30+
+        lq = Math.max(0.05, Math.min(1, b/20));
+      }
+      return lq;
+    }
+
+    function estimateBER(){
+      const avgRTT = pingSamples.length ? (pingSamples.reduce((a,b)=>a+b,0)/pingSamples.length) : lastRTT;
+      const jit = getJitter();
+      if(avgRTT==null) return null;
+      const ms = Math.min(800, Math.max(20, avgRTT));
+      const j  = Math.min(200, Math.max(0, jit||0));
+      // 0 (bagus) .. 1 (jelek)
+      let score = (ms-40)/600 + j/300;
+      score = Math.min(1, Math.max(0, score));
+      const ber = (score*8 + 0.1); // skala kasar ke e-3
+      return ber.toFixed(2)+'E-3';
+    }
+
+
+    function updateOverlay(){
+    const avgRTT = pingSamples.length? Math.round(pingSamples.reduce((a,b)=>a+b,0)/pingSamples.length) : (lastRTT?Math.round(lastRTT):null);
+    const jitter = getJitter();
+    ovPing.textContent = avgRTT!=null? (avgRTT+' ms') : '—';
+    ovJitter.textContent = jitter!=null? Math.round(jitter)+' ms' : '—';
+
+    const b = bufferLen();
+    ovBuffer.textContent = isFinite(b) ? b.toFixed(1)+' s' : '—';
+
+    // Intensitas buffer
+    const bufPct = Math.max(0, Math.min(1, isFinite(b)?b/20:0));
+    intFill.style.width = (bufPct*100).toFixed(1)+'%';
+    ovIntLabel.textContent = (bufPct>=0.8) ? 'Tinggi' : (bufPct>=0.4) ? 'Sedang' : 'Rendah';
+
+    const w = video.videoWidth||0, h= video.videoHeight||0; 
+    ovRes.textContent = (w&&h)? (w+'×'+h) : '—';
+
+    const drops = droppedFrames(); 
+    ovDrops.textContent = (typeof drops === 'number' && drops >= 0) ? drops : '—';
+
+    // BER
+    const ber = estimateBER();
+    ovBER.textContent = ber ? ber : '—';
+
+    // Bitrate: jika belum diisi oleh HLS event, tampilkan default
+    if(!ovBit.textContent || ovBit.textContent === '') ovBit.textContent = '—';
+  
+    // Signal bars
+    const target = estimateSignalLevel();
+    const prev = displayedLevel;
+    const jitterAnim = Math.sin(Date.now()/700)*0.02;
+    displayedLevel = Math.max(0, Math.min(1, displayedLevel*0.85 + target*0.15 + jitterAnim));
+    const barsOn = Math.max(0, Math.min(MAX_BARS, Math.round(displayedLevel*MAX_BARS)));
+    if(displayedLevel - prev > 0.15) beep();
+    [...sigBars.children].forEach((el,i)=>{
+      el.className='bar'+(i<barsOn? ' on '+(displayedLevel>0.7?'ok':(displayedLevel>0.4?'warn':'bad')):'');
+    });
+    ovSigLabel.textContent = displayedLevel>0.7? 'KUAT' : displayedLevel>0.4? 'SEDANG' : 'LEMAH';
+  }
+
+    setInterval(()=>{ doPing(); }, 4000);
+
+    // File & local storage
+    // ...existing code...
+
+loadFileBtn.onclick = async()=>{
+  const f = m3uFile.files?.[0]; 
+  if(!f){ showToast('Pilih berkas .m3u terlebih dahulu'); return; }
+  const txt = await f.text(); 
+  m3uText.value = txt; 
+  parseM3UText(txt); 
+  localStorage.setItem('lexivac.m3u', txt); // Simpan otomatis setelah load file
+  showToast('Playlist dimuat dari file & disimpan');
+};
+
+parseTextBtn.onclick = ()=>{
+  parseM3UText(m3uText.value||''); 
+  localStorage.setItem('lexivac.m3u', m3uText.value||''); // Simpan otomatis setelah parse teks
+  showToast('Playlist di-parse & disimpan');
+};
+
+// Tambahan wiring tombol simpan & muat
+saveLocalBtn.onclick = ()=>{
+  const txt = m3uText.value||'';
+  try{
+    localStorage.setItem('lexivac.m3u', txt);
+    showToast('Playlist disimpan ke penyimpanan lokal');
+  }catch(e){
+    showToast('Gagal menyimpan: '+e.message);
+  }
+};
+loadLocalBtn.onclick = ()=>{
+  const saved = localStorage.getItem('lexivac.m3u');
+  if(saved){
+    m3uText.value = saved;
+    parseM3UText(saved);
+    showToast('Playlist dimuat dari penyimpanan lokal');
+  } else {
+    showToast('Belum ada playlist tersimpan');
+  }
+};
+
+// ...existing code...
+
+    // Update overlays on metadata
+    video.addEventListener('loadedmetadata', updateOverlay);
+    video.addEventListener('ratechange', updateOverlay);
+    const ber = estimateBER();
+    ovBER.textContent = ber ? ber : 'N/A';
+  })();
+  </script>
+</body>
+</html>
