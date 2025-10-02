@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IVANPANDA AI STUDIO 1.0</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --dark: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --hover-bg: #334155;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: right;
+            padding: 10px 0;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: inline-block;
+        }
+
+        .core-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .core-section h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+            font-size: 1.3rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .core-section h2::before {
+            content: "🎯";
+        }
+
+        .core-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .core-input {
+            margin-bottom: 16px;
+        }
+
+        .core-input label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        textarea, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            background: #1e293b;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .menu-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .menu-section h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+            font-size: 1.3rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .menu-section h2::before {
+            content: "🛠️";
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 16px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        select {
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        .output-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .output-section h2 {
+            text-align: center;
+            margin-bottom: 16px;
+            color: var(--accent);
+            font-size: 1.4rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .output-section h2::before {
+            content: "💫";
+        }
+
+        .output-area {
+            width: 100%;
+            min-height: 150px;
+            max-height: 300px;
+            padding: 15px;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            background: #0f172a;
+            color: var(--text-primary);
+            font-family: monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-bottom: 16px;
+        }
+
+        .generate-btn {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto 16px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            transition: all 0.2s ease;
+        }
+
+        .generate-btn:hover {
+            background: linear-gradient(45deg, var(--primary-dark), #7c3aed);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(99, 102, 241, 0.4);
+        }
+
+        .copy-btn {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(45deg, var(--success), #059669);
+            color: white;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background: linear-gradient(45deg, #059669, #047857);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Responsive design */
+        @media (max-width: 1400px) {
+            .menu-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .menu-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .core-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .menu-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header - Right Aligned -->
+    <div class="header">
+        <h1>IVANPANDA AI STUDIO 1.0</h1>
+    </div>
+
+    <!-- Core Parameters - Split into 2 columns -->
+    <div class="core-section">
+        <h2>CORE PARAMETERS</h2>
+        <div class="core-grid">
+            <div class="core-column">
+                <div class="core-input">
+                    <label><span>✍️</span> Prompt Awal:</label>
+                    <textarea id="initialPrompt" placeholder="Contoh: Seorang wanita cantik berbaju hitam"></textarea>
+                </div>
+                <div class="core-input">
+                    <label><span>📐</span> 1. Sudut Pandang:</label>
+                    <select id="angleSelect">
+                        <option value="">-- Pilih Sudut Pandang --</option>
+                        <option value="low angle shot">Sudut Rendah</option>
+                        <option value="high angle shot">Sudut Tinggi</option>
+                        <option value="eye-level shot">Sejajar Mata</option>
+                        <option value="full shot">Gambar Penuh</option>
+                        <option value="close-up portrait">Potret Close-up</option>
+                    </select>
+                </div>
+                <div class="core-input">
+                    <label><span>💡</span> 2. Pencahayaan:</label>
+                    <select id="lightingSelect">
+                        <option value="">-- Pilih Pencahayaan --</option>
+                        <option value="studio lighting">Pencahayaan Studio</option>
+                        <option value="natural light">Cahaya Alami</option>
+                        <option value="dramatic lighting">Pencahayaan Dramatis</option>
+                        <option value="backlight">Cahaya Belakang</option>
+                    </select>
+                </div>
+            </div>
+            <div class="core-column">
+                <div class="core-input">
+                    <label><span>🖼️</span> 3. Tipe Gambar:</label>
+                    <select id="imageTypeSelect">
+                        <option value="">-- Pilih Tipe Gambar --</option>
+                        <option value="photorealistic">Fotorealistik</option>
+                        <option value="high-fashion editorial">Editorial Mode Tinggi</option>
+                        <option value="lifestyle photography">Gaya Hidup</option>
+                        <option value="commercial photography">Fotografi Komersial</option>
+                    </select>
+                </div>
+                <div class="core-input">
+                    <label><span>🧍</span> 4. Posisi & Ekspresi:</label>
+                    <select id="positionSelect">
+                        <option value="">-- Pilih Posisi --</option>
+                        <option value="standing">Berdiri</option>
+                        <option value="sitting">Duduk</option>
+                    </select>
+                </div>
+                <div class="core-input" id="poseVarietyGroup" style="display: none;">
+                    <label>Variasi Posisi:</label>
+                    <select id="poseVarietySelect"></select>
+                </div>
+                <div class="core-input">
+                    <label><span>✋</span> 5. Gerakan:</label>
+                    <select id="gestureSelect">
+                        <option value="">-- Pilih Gerakan --</option>
+                        <option value="smiling">Tersenyum</option>
+                        <option value="serious expression">Ekspresi Serius</option>
+                        <option value="laughing">Tertawa</option>
+                        <option value="hands in pockets">Tangan di Saku</option>
+                        <option value="hands on chin">Tangan di Dagu</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Settings -->
+    <div class="menu-section">
+        <h2>SETINGAN LANJUTAN</h2>
+        <div class="menu-grid">
+            <!-- Tatapan & Teknis -->
+            <div class="card">
+                <h3>👁️ Tatapan & Teknis</h3>
+                <select id="gazeDirectionSelect">
+                    <option value="">-- Arah & Sudut Tatapan --</option>
+                    <option value="A1 - Direct Front Gaze (0°)">A1 - Tatapan Langsung Depan (0°)</option>
+                    <option value="A2 - Soft Direct Gaze (0°)">A2 - Tatapan Lembut Depan (0°)</option>
+                    <option value="A3 - Slight Turn Right (15-30°)">A3 - Sedikit Miring Kanan (15-30°)</option>
+                    <option value="A4 - Slight Turn Left (15-30°)">A4 - Sedikit Miring Kiri (15-30°)</option>
+                    <option value="A5 - Quarter Turn Right (45°)">A5 - Separuh Putar Kanan (45°)</option>
+                    <option value="A6 - Quarter Turn Left (45°)">A6 - Separuh Putar Kiri (45°)</option>
+                    <option value="A7 - Profile Right (90°)">A7 - Profil Kanan (90°)</option>
+                    <option value="A8 - Profile Left (90°)">A8 - Profil Kiri (90°)</option>
+                    <option value="A9 - Over Shoulder Right (45-60°)">A9 - Di Atas Bahu Kanan (45-60°)</option>
+                    <option value="A10 - Over Shoulder Left (45-60°)">A10 - Di Atas Bahu Kiri (45-60°)</option>
+                </select>
+                <select id="emotionalExpressionSelect">
+                    <option value="">-- Ekspresi Emosional --</option>
+                    <option value="B1 - Happy Gaze (Mata berbinar)">B1 - Tatapan Bahagia (Mata berbinar)</option>
+                    <option value="B2 - Sad Gaze (Mata sayu)">B2 - Tatapan Sedih (Mata sayu)</option>
+                    <option value="B3 - Angry Gaze (Tatapan tajam)">B3 - Tatapan Marah (Tatapan tajam)</option>
+                    <option value="B4 - Dreamy Gaze (Melamun)">B4 - Tatapan Melamun (Melamun)</option>
+                    <option value="B5 - Confident Gaze (Percaya diri)">B5 - Tatapan Percaya Diri (Percaya diri)</option>
+                    <option value="B6 - Shy Gaze (Malu)">B6 - Tatapan Malu (Malu)</option>
+                    <option value="B7 - Mysterious Gaze (Penuh rahasia)">B7 - Tatapan Misterius (Penuh rahasia)</option>
+                    <option value="B8 - Innocent Gaze (Polos)">B8 - Tatapan Polos (Polos)</option>
+                    <option value="B9 - Seductive Gaze (Menggoda)">B9 - Tatapan Menggoda (Menggoda)</option>
+                    <option value="B10 - Thoughtful Gaze (Berpikir)">B10 - Tatapan Renungan (Berpikir)</option>
+                </select>
+                <select id="dynamicGazeSelect">
+                    <option value="">-- Tatapan Dinamis --</option>
+                    <option value="C1 - Looking Off-Camera">C1 - Melihat Keluar Kamera</option>
+                    <option value="C2 - Looking Up">C2 - Melihat ke Atas</option>
+                    <option value="C3 - Looking Down">C3 - Melihat ke Bawah</option>
+                    <option value="C4 - Following Object">C4 - Mengikuti Objek</option>
+                    <option value="C5 - Interactive Gaze">C5 - Tatapan Interaktif</option>
+                    <option value="C6 - Through Objects">C6 - Menembus Objek</option>
+                    <option value="C7 - Reflection Gaze">C7 - Tatapan Pantulan</option>
+                    <option value="C8 - Peripheral Gaze">C8 - Tatapan Periferal</option>
+                </select>
+                <select id="technicalGazeSelect">
+                    <option value="">-- Parameter Teknis --</option>
+                    <option value="D1 - Neutral Expression">D1 - Ekspresi Netral</option>
+                    <option value="D2 - Extreme Angles">D2 - Sudut Ekstrem</option>
+                    <option value="D3 - Lighting Variations">D3 - Variasi Pencahayaan</option>
+                    <option value="D4 - Expression Range">D4 - Rentang Ekspresi</option>
+                    <option value="D5 - Multi-directional">D5 - Multi-arah</option>
+                    <option value="D6 - Partial Face">D6 - Wajah Sebagian</option>
+                    <option value="D7 - Different Distances">D7 - Jarak Berbeda</option>
+                    <option value="D8 - Cultural Variations">D8 - Variasi Budaya</option>
+                </select>
+            </div>
+
+            <!-- Industri -->
+            <div class="card">
+                <h3>🏢 Aplikasi Industri</h3>
+                <select id="industrySelect">
+                    <option value="">-- Pilih Industri --</option>
+                    <optgroup label="Periklanan">
+                        <option value="AD1 - Confident Direct Gaze">AD1 - Tatapan Percaya Diri Langsung</option>
+                        <option value="AD2 - Happy Engaged Gaze">AD2 - Tatapan Bahagia yang Menarik</option>
+                        <option value="AD3 - Aspirational Gaze">AD3 - Tatapan Aspirasional</option>
+                        <option value="AD4 - Trustworthy Gaze">AD4 - Tatapan Terpercaya</option>
+                        <option value="AD5 - Playful Gaze">AD5 - Tatapan Main-main</option>
+                    </optgroup>
+                    <optgroup label="Korporat & Bisnis">
+                        <option value="COR1 - Authoritative Gaze">COR1 - Tatapan Otoritatif</option>
+                        <option value="COR2 - Approachable Gaze">COR2 - Tatapan Ramah</option>
+                        <option value="COR3 - Professional Gaze">COR3 - Tatapan Profesional</option>
+                        <option value="COR4 - Innovative Gaze">COR4 - Tatapan Inovatif</option>
+                        <option value="COR5 - Collaborative Gaze">COR5 - Tatapan Kolaboratif</option>
+                    </optgroup>
+                    <optgroup label="Ritel Komersial">
+                        <option value="RET1 - Inviting Gaze">RET1 - Tatapan Mengundang</option>
+                        <option value="RET2 - Satisfied Gaze">RET2 - Tatapan Puas</option>
+                        <option value="RET3 - Trendy Gaze">RET3 - Tatapan Trendi</option>
+                        <option value="RET4 - Reliable Gaze">RET4 - Tatapan Andal</option>
+                        <option value="RET5 - Excited Gaze">RET5 - Tatapan Bersemangat</option>
+                    </optgroup>
+                    <optgroup label="Televisi & Produksi">
+                        <option value="TV1 - Intimate Gaze">TV1 - Tatapan Intim</option>
+                        <option value="TV2 - Dramatic Gaze">TV2 - Tatapan Dramatis</option>
+                        <option value="TV3 - Engaging Gaze">TV3 - Tatapan Menarik</option>
+                        <option value="TV4 - Instructional Gaze">TV4 - Tatapan Instruksional</option>
+                        <option value="TV5 - Suspenseful Gaze">TV5 - Tatapan Mendebarkan</option>
+                    </optgroup>
+                    <optgroup label="Media Sosial">
+                        <option value="SM1 - Authentic Gaze">SM1 - Tatapan Autentik</option>
+                        <option value="SM2 - Professional Gaze">SM2 - Tatapan Profesional</option>
+                        <option value="SM3 - Viral Gaze">SM3 - Tatapan Viral</option>
+                        <option value="SM4 - Influencer Gaze">SM4 - Tatapan Influencer</option>
+                        <option value="SM5 - Interactive Gaze">SM5 - Tatapan Interaktif</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <!-- Color Grading -->
+            <div class="card">
+                <h3>🎨 Grading Warna</h3>
+                <select id="colorGradingSelect">
+                    <option value="">-- Pilih Grading Warna --</option>
+                    <optgroup label="Periklanan">
+                        <option value="AD-C1 - Luxury Gold Tone">AD-C1 - Nuansa Emas Mewah</option>
+                        <option value="AD-C2 - Vibrant Pop">AD-C2 - Warna Cerah Pop</option>
+                        <option value="AD-C3 - Clean & Bright">AD-C3 - Bersih & Cerah</option>
+                        <option value="AD-C4 - Muted Pastel">AD-C4 - Pastel Lembut</option>
+                        <option value="AD-C5 - High Contrast Dramatic">AD-C5 - Kontras Tinggi Dramatis</option>
+                    </optgroup>
+                    <optgroup label="Korporat">
+                        <option value="COR-C1 - Corporate Blue Tone">COR-C1 - Nuansa Biru Korporat</option>
+                        <option value="COR-C2 - Warm Neutral">COR-C2 - Netral Hangat</option>
+                        <option value="COR-C3 - Green Eco Tone">COR-C3 - Nuansa Hijau Ramah Lingkungan</option>
+                        <option value="COR-C4 - Monochrome Professional">COR-C4 - Monokrom Profesional</option>
+                        <option value="COR-C5 - Innovative Purple">COR-C5 - Ungu Inovatif</option>
+                    </optgroup>
+                    <optgroup label="Ritel">
+                        <option value="RET-C1 - Warm Inviting">RET-C1 - Hangat Mengundang</option>
+                        <option value="RET-C2 - Cool Minimalist">RET-C2 - Minimalis Dingin</option>
+                        <option value="RET-C3 - Rich Saturated">RET-C3 - Jenuh Kaya</option>
+                        <option value="RET-C4 - Natural Organic">RET-C4 - Organik Alami</option>
+                        <option value="RET-C5 - Luxury Matte">RET-C5 - Matte Mewah</option>
+                    </optgroup>
+                    <optgroup label="Siaran">
+                        <option value="TV-C1 - News Room Standard">TV-C1 - Standar Ruang Berita</option>
+                        <option value="TV-C2 - Cinematic Film">TV-C2 - Film Sinematik</option>
+                        <option value="TV-C3 - Reality TV Vibrant">TV-C3 - Reality TV Cerah</option>
+                        <option value="TV-C4 - Talk Show Warm">TV-C4 - Hangat Talk Show</option>
+                        <option value="TV-C5 - Commercial Broadcast">TV-C5 - Siaran Komersial</option>
+                    </optgroup>
+                    <optgroup label="Media Sosial">
+                        <option value="SM-C1 - Instagram Aesthetic">SM-C1 - Estetika Instagram</option>
+                        <option value="SM-C2 - TikTok Vibrant">SM-C2 - Cerah TikTok</option>
+                        <option value="SM-C3 - YouTube Professional">SM-C3 - Profesional YouTube</option>
+                        <option value="SM-C4 - LinkedIn Corporate">SM-C4 - Korporat LinkedIn</option>
+                        <option value="SM-C5 - Facebook Family">SM-C5 - Keluarga Facebook</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <!-- Teknis AI -->
+            <div class="card">
+                <h3>📷 Teknis AI</h3>
+                <select id="cameraSettingsSelect">
+                    <option value="">-- Pengaturan Kamera --</option>
+                    <option value="Portrait (85mm f/1.8)">Potret (85mm f/1.8)</option>
+                    <option value="Studio (50mm f/8)">Studio (50mm f/8)</option>
+                    <option value="Commercial (24-70mm f/5.6)">Komersial (24-70mm f/5.6)</option>
+                    <option value="Fashion (70-200mm f/2.8)">Mode (70-200mm f/2.8)</option>
+                    <option value="Documentary (35mm f/2.8)">Dokumenter (35mm f/2.8)</option>
+                </select>
+                <select id="lightingSetupSelect">
+                    <option value="">-- Setup Pencahayaan --</option>
+                    <option value="Natural Light - Soft">Cahaya Alami - Lembut</option>
+                    <option value="Natural Light - Hard">Cahaya Alami - Keras</option>
+                    <option value="Studio Softbox - Front">Softbox Studio - Depan</option>
+                    <option value="Studio Softbox - 45°">Softbox Studio - 45°</option>
+                    <option value="Rembrandt Lighting">Pencahayaan Rembrandt</option>
+                    <option value="Butterfly Lighting">Pencahayaan Butterfly</option>
+                    <option value="Split Lighting">Pencahayaan Split</option>
+                    <option value="Backlight Only">Hanya Cahaya Belakang</option>
+                </select>
+            </div>
+
+            <!-- Target Audience -->
+            <div class="card">
+                <h3>👥 Target Audiens</h3>
+                <select id="targetAudienceSelect">
+                    <option value="">-- Pilih Target Audiens --</option>
+                    <optgroup label="Demografi Usia">
+                        <option value="Children (0-12 tahun)">Anak-anak (0-12 tahun)</option>
+                        <option value="Teenagers (13-19 tahun)">Remaja (13-19 tahun)</option>
+                        <option value="Young Adults (20-29 tahun)">Dewasa Muda (20-29 tahun)</option>
+                        <option value="Adults (30-45 tahun)">Dewasa (30-45 tahun)</option>
+                        <option value="Middle Age (46-60 tahun)">Paruh Baya (46-60 tahun)</option>
+                        <option value="Seniors (60+ tahun)">Lansia (60+ tahun)</option>
+                    </optgroup>
+                    <optgroup label="Target Gender">
+                        <option value="Male Focused">Fokus Pria</option>
+                        <option value="Female Focused">Fokus Wanita</option>
+                        <option value="Unisex">Uniseks</option>
+                        <option value="Gender Neutral">Netral Gender</option>
+                        <option value="LGBTQ+ Inclusive">Inklusif LGBTQ+</option>
+                    </optgroup>
+                    <optgroup label="Tingkat Pendapatan">
+                        <option value="Mass Market (Low Income)">Pasar Massal (Pendapatan Rendah)</option>
+                        <option value="Middle Class (Medium Income)">Kelas Menengah (Pendapatan Menengah)</option>
+                        <option value="Premium (High Income)">Premium (Pendapatan Tinggi)</option>
+                        <option value="Luxury (Ultra High Income)">Mewah (Pendapatan Sangat Tinggi)</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <!-- Latar Belakang -->
+            <div class="card">
+                <h3>🖼️ Latar Belakang</h3>
+                <select id="solidBackgroundSelect">
+                    <option value="">-- Latar Belakang Solid --</option>
+                    <option value="Pure White Studio">Studio Putih Murni</option>
+                    <option value="Jet Black Background">Latar Belakang Hitam Pekat</option>
+                    <option value="Light Gray Neutral">Abu-abu Muda Netral</option>
+                    <option value="Charcoal Dark">Arang Gelap</option>
+                    <option value="Navy Blue Deep">Biru Navy Gelap</option>
+                    <option value="Burgundy Rich">Burgundy Kaya</option>
+                    <option value="Forest Green Dark">Hijau Hutan Gelap</option>
+                    <option value="Soft Beige Cream">Krem Beige Lembut</option>
+                    <option value="Warm Ivory">Gading Hangat</option>
+                    <option value="Cool Slate Gray">Abu-abu Batu Dingin</option>
+                </select>
+                <select id="gradientBackgroundSelect">
+                    <option value="">-- Latar Belakang Gradien --</option>
+                    <option value="Blue to Purple Gradient">Gradien Biru ke Ungu</option>
+                    <option value="Sunset Orange to Pink">Matahari Terbenam Oranye ke Pink</option>
+                    <option value="Teal to Navy Ombre">Teal ke Navy Ombre</option>
+                    <option value="Gold to Bronze Metallic">Metalik Emas ke Perunggu</option>
+                    <option value="Gray to Black Fade">Fade Abu-abu ke Hitam</option>
+                    <option value="Pastel Rainbow Soft">Pelangi Pastel Lembut</option>
+                    <option value="Deep Ocean Blue Gradient">Gradien Biru Laut Dalam</option>
+                    <option value="Forest Green Gradient">Gradien Hijau Hutan</option>
+                    <option value="Sunrise Yellow to Orange">Matahari Terbit Kuning ke Oranye</option>
+                    <option value="Lavender to Lilac Soft">Lavender ke Lilac Lembut</option>
+                </select>
+                <select id="abstractBackgroundSelect">
+                    <option value="">-- Latar Belakang Abstrak --</option>
+                    <option value="Marble Vein Abstract">Abstrak Urat Marmer</option>
+                    <option value="Geometric Pattern Modern">Pola Geometris Modern</option>
+                    <option value="Liquid Mercury Effect">Efek Merkuri Cair</option>
+                    <option value="Brush Stroke Texture">Tekstur Sapuan Kuas</option>
+                    <option value="Watercolor Wash Abstract">Abstrak Sapuan Cat Air</option>
+                    <option value="Crystal Fractal Pattern">Pola Fraktal Kristal</option>
+                    <option value="Smoke Effect Dramatic">Efek Asap Dramatis</option>
+                    <option value="Bokeh Light Circles">Lingkaran Cahaya Bokeh</option>
+                    <option value="Cosmic Galaxy Nebula">Nebula Galaksi Kosmik</option>
+                    <option value="Minimal Line Art">Seni Garis Minimalis</option>
+                </select>
+                <select id="materialBackgroundSelect">
+                    <option value="">-- Latar Belakang Material --</option>
+                    <option value="Concrete Texture Urban">Tekstur Beton Urban</option>
+                    <option value="Wood Grain Natural">Serat Kayu Alami</option>
+                    <option value="Fabric Drapery Soft">Kain Tirai Lembut</option>
+                    <option value="Metal Brushed Industrial">Logam Gosok Industrial</option>
+                    <option value="Paper Texture Organic">Tekstur Kertas Organik</option>
+                    <option value="Stone Wall Rustic">Dinding Batu Rustik</option>
+                    <option value="Brick Wall Urban">Dinding Bata Urban</option>
+                    <option value="Leather Texture Luxury">Tekstur Kulit Mewah</option>
+                    <option value="Canvas Artist Texture">Tekstur Kanvas Seniman</option>
+                    <option value="Glass Frosted Modern">Kaca Buram Modern</option>
+                </select>
+                <select id="naturalBackgroundSelect">
+                    <option value="">-- Latar Belakang Alam --</option>
+                    <option value="Garden Greenery Lush">Taman Hijau Rimbun</option>
+                    <option value="Urban Cityscape Blurred">Pemandangan Kota Kabur</option>
+                    <option value="Beach Ocean Waves">Pantai Ombak Laut</option>
+                    <option value="Forest Woods Natural">Hutan Kayu Alami</option>
+                    <option value="Mountain Landscape">Pemandangan Gunung</option>
+                    <option value="Cafe Interior Cozy">Interior Kafe Nyaman</option>
+                    <option value="Park Garden Spring">Taman Musim Semi</option>
+                    <option value="Desert Sand Dunes">Gurun Pasir</option>
+                    <option value="Lake Reflection Calm">Danau Pantulan Tenang</option>
+                    <option value="Sky Cloudscape Dreamy">Langit Awan Bermimpi</option>
+                </select>
+            </div>
+
+            <!-- Studio Settings -->
+            <div class="card">
+                <h3>🏠 Pengaturan Studio</h3>
+                <select id="studioShapeSelect">
+                    <option value="">-- Bentuk Studio --</option>
+                    <option value="Cyclorama Infinity Cove">Cyclorama Cove Tak Terbatas</option>
+                    <option value="Traditional Rectangle Studio">Studio Persegi Panjang Tradisional</option>
+                    <option value="Corner Studio Setup">Setup Studio Sudut</option>
+                    <option value="Mini Home Studio">Studio Rumahan Mini</option>
+                    <option value="Industrial Loft Style">Gaya Loteng Industri</option>
+                    <option value="Green Screen Studio">Studio Layar Hijau</option>
+                    <option value="White Box Minimalist">Kotak Putih Minimalis</option>
+                    <option value="Black Box Dramatic">Kotak Hitam Dramatis</option>
+                    <option value="Cyc Wall Curved">Dinding Cyc Melengkung</option>
+                    <option value="Modular Panel System">Sistem Panel Modular</option>
+                </select>
+                <select id="studioLightingSelect">
+                    <option value="">-- Pencahayaan Studio --</option>
+                    <option value="Butterfly Lighting Classic">Pencahayaan Butterfly Klasik</option>
+                    <option value="Rembrandt Lighting Dramatic">Pencahayaan Rembrandt Dramatis</option>
+                    <option value="Split Lighting Moody">Pencahayaan Split Moody</option>
+                    <option value="Loop Lighting Natural">Pencahayaan Loop Alami</option>
+                    <option value="Broad Lighting Wide">Pencahayaan Luas Lebar</option>
+                    <option value="Short Lighting Slimming">Pencahayaan Pendek Pelangsing</option>
+                    <option value="Backlight Rim Effect">Efek Cahaya Tepi Belakang</option>
+                    <option value="Softbox Diffused Even">Softbox Menyebar Merata</option>
+                    <option value="Beauty Dish Fashion">Beauty Dish Mode</option>
+                    <option value="Natural Window Light">Cahaya Jendela Alami</option>
+                </select>
+                <select id="studioPropsSelect">
+                    <option value="">-- Properti & Desain Set --</option>
+                    <option value="Minimalist Clean Setup">Setup Minimalis Bersih</option>
+                    <option value="Furniture Lifestyle">Furnitur Gaya Hidup</option>
+                    <option value="Floral Arrangement">Susunan Bunga</option>
+                    <option value="Architectural Elements">Elemen Arsitektur</option>
+                    <option value="Vintage Props Retro">Properti Vintage Retro</option>
+                    <option value="Modern Tech Elements">Elemen Teknologi Modern</option>
+                    <option value="Artistic Sculptures">Patung Artistik</option>
+                    <option value="Fabric Drapes Flowing">Tirai Kain Mengalir</option>
+                    <option value="Geometric Shapes">Bentuk Geometris</option>
+                    <option value="Organic Natural Elements">Elemen Alami Organik</option>
+                </select>
+            </div>
+
+            <!-- Output Format -->
+            <div class="card">
+                <h3>📄 Format Output</h3>
+                <select id="fileFormatSelect">
+                    <option value="">-- Format File --</option>
+                    <option value="JPEG - High Quality">JPEG - Kualitas Tinggi</option>
+                    <option value="JPEG - Medium Quality">JPEG - Kualitas Sedang</option>
+                    <option value="PNG - Transparent Background">PNG - Latar Belakang Transparan</option>
+                    <option value="RAW - Professional Editing">RAW - Editing Profesional</option>
+                    <option value="WebP - Web Optimization">WebP - Optimasi Web</option>
+                </select>
+                <select id="resolutionSelect">
+                    <option value="">-- Ukuran Resolusi --</option>
+                    <option value="Social Media (1080x1080)">Media Sosial (1080x1080)</option>
+                    <option value="Instagram Story (1080x1920)">Cerita Instagram (1080x1920)</option>
+                    <option value="Facebook Cover (1200x630)">Sampul Facebook (1200x630)</option>
+                    <option value="YouTube Thumbnail (1280x720)">Thumbnail YouTube (1280x720)</option>
+                    <option value="4K UHD (3840x2160)">4K UHD (3840x2160)</option>
+                    <option value="Print Quality (300 DPI)">Kualitas Cetak (300 DPI)</option>
+                </select>
+                <select id="aspectRatioSelect">
+                    <option value="">-- Rasio Aspek --</option>
+                    <option value="Square (1:1)">Persegi (1:1)</option>
+                    <option value="Portrait (4:5)">Potret (4:5)</option>
+                    <option value="Landscape (16:9)">Lanskap (16:9)</option>
+                    <option value="Mobile (9:16)">Seluler (9:16)</option>
+                    <option value="Cinematic (21:9)">Sinematik (21:9)</option>
+                </select>
+            </div>
+
+            <!-- Ekspresi & Mood -->
+            <div class="card">
+                <h3>🎯 Ekspresi & Suasana</h3>
+                <select id="moodAtmosphereSelect">
+                    <option value="">-- Ekspresi & Suasana --</option>
+                    <option value="Happy Gaze (Mata berbinar)">Tatapan Bahagia (Mata berbinar)</option>
+                    <option value="Sad Gaze (Mata sayu)">Tatapan Sedih (Mata sayu)</option>
+                    <option value="Angry Gaze (Tatapan tajam)">Tatapan Marah (Tatapan tajam)</option>
+                    <option value="Dreamy Gaze (Melamun)">Tatapan Melamun (Melamun)</option>
+                    <option value="Confident Gaze (Percaya diri)">Tatapan Percaya Diri (Percaya diri)</option>
+                    <option value="Shy Gaze (Malu)">Tatapan Malu (Malu)</option>
+                    <option value="Mysterious Gaze (Penuh rahasia)">Tatapan Misterius (Penuh rahasia)</option>
+                    <option value="Innocent Gaze (Polos)">Tatapan Polos (Polos)</option>
+                    <option value="Seductive Gaze (Menggoda)">Tatapan Menggoda (Menggoda)</option>
+                    <option value="Thoughtful Gaze (Berpikir)">Tatapan Renungan (Berpikir)</option>
+                    <option value="Professional & Corporate">Profesional & Korporat</option>
+                    <option value="Casual & Friendly">Santai & Ramah</option>
+                    <option value="Luxury & Premium">Mewah & Premium</option>
+                    <option value="Playful & Fun">Main-main & Menyenangkan</option>
+                    <option value="Serious & Authoritative">Serius & Otoritatif</option>
+                    <option value="Romantic & Dreamy">Romantis & Bermimpi</option>
+                    <option value="Energetic & Dynamic">Energetik & Dinamis</option>
+                </select>
+            </div>
+
+            <!-- Preset Cepat -->
+            <div class="card">
+                <h3>⚡ Preset Cepat</h3>
+                <select id="quickPresetSelect">
+                    <option value="">-- Kombinasi Preset --</option>
+                    <option value="Corporate Professional - COR1 + COR-C1">Profesional Korporat - COR1 + COR-C1</option>
+                    <option value="Luxury Brand - AD1 + AD-C1">Merek Mewah - AD1 + AD-C1</option>
+                    <option value="Social Media Viral - SM3 + SM-C2">Viral Media Sosial - SM3 + SM-C2</option>
+                    <option value="Eco Friendly - COR3 + COR-C3">Ramah Lingkungan - COR3 + COR-C3</option>
+                    <option value="Youth Fashion - RET3 + RET-C3">Mode Remaja - RET3 + RET-C3</option>
+                    <option value="Healthcare Trust - SP1 + SP-C1">Kepercayaan Kesehatan - SP1 + SP-C1</option>
+                    <option value="Tech Innovation - COR4 + COR-C5">Inovasi Teknologi - COR4 + COR-C5</option>
+                </select>
+                <select id="popularCombosSelect">
+                    <option value="">-- Kombinasi Latar + Tekstur --</option>
+                    <option value="Blue Gradient + Marble Texture">Gradien Biru + Tekstur Marmer</option>
+                    <option value="Black Background + Gold Foil">Latar Hitam + Foil Emas</option>
+                    <option value="White Studio + Concrete Texture">Studio Putih + Tekstur Beton</option>
+                    <option value="Gray Gradient + Wood Grain">Gradien Abu-abu + Serat Kayu</option>
+                    <option value="Green Background + Leaf Pattern">Latar Hijau + Pola Daun</option>
+                    <option value="Purple Ombre + Crystal Texture">Ombre Ungu + Tekstur Kristal</option>
+                    <option value="Warm Beige + Linen Fabric">Beige Hangat + Kain Linen</option>
+                    <option value="Dark Charcoal + Metal Brushed">Arang Gelap + Logam Gosok</option>
+                    <option value="Pastel Pink + Watercolor Wash">Pink Pastel + Sapuan Cat Air</option>
+                    <option value="Navy Blue + Geometric Pattern">Biru Navy + Pola Geometris</option>
+                </select>
+                <select id="studioLightingCombosSelect">
+                    <option value="">-- Kombinasi Studio + Pencahayaan --</option>
+                    <option value="Cyclorama + Softbox Lighting">Cyclorama + Pencahayaan Softbox</option>
+                    <option value="Black Box + Backlight Rim">Kotak Hitam + Cahaya Tepi Belakang</option>
+                    <option value="White Box + Butterfly Lighting">Kotak Putih + Pencahayaan Butterfly</option>
+                    <option value="Infinity Cove + Rembrandt">Cove Tak Terbatas + Rembrandt</option>
+                    <option value="Green Screen + Even Lighting">Layar Hijau + Pencahayaan Merata</option>
+                    <option value="Industrial Loft + Window Light">Loteng Industri + Cahaya Jendela</option>
+                    <option value="Minimal Studio + Beauty Dish">Studio Minimal + Beauty Dish</option>
+                    <option value="Corner Setup + Split Lighting">Setup Sudut + Pencahayaan Split</option>
+                    <option value="Modular Panels + Loop Lighting">Panel Modular + Pencahayaan Loop</option>
+                    <option value="Home Studio + Natural Light">Studio Rumahan + Cahaya Alami</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Output Section -->
+    <div class="output-section">
+        <h2>PROMPT AKHIR</h2>
+        <div class="output-area" id="finalPrompt"></div>
+        <button class="generate-btn" onclick="generatePrompt()">GENERATE</button>
+        <button class="copy-btn" onclick="copyToClipboard()">SALIN</button>
+    </div>
+
+    <script>
+        // Pose variations mapping
+        const poseVariations = {
+            'standing': [
+                'berdiri percaya diri dengan satu tangan di pinggang',
+                'berdiri santai dengan tangan disilang',
+                'berdiri elegan dengan tangan terkait',
+                'berdiri dengan berat pada satu kaki',
+                'berdiri tegak dengan tangan di samping'
+            ],
+            'sitting': [
+                'duduk anggun di kursi',
+                'duduk bersila di lantai',
+                'duduk dengan kaki elegan disilang',
+                'duduk santai di bangku',
+                'duduk dengan satu kaki ditekuk di bawah'
+            ]
+        };
+
+        // Update pose variety options when position changes
+        document.getElementById('positionSelect').addEventListener('change', function() {
+            const position = this.value;
+            const poseVarietyGroup = document.getElementById('poseVarietyGroup');
+            const poseVarietySelect = document.getElementById('poseVarietySelect');
+            
+            if (position && poseVariations[position]) {
+                poseVarietySelect.innerHTML = '';
+                poseVariations[position].forEach(variation => {
+                    const option = document.createElement('option');
+                    option.value = variation;
+                    option.textContent = variation.charAt(0).toUpperCase() + variation.slice(1);
+                    poseVarietySelect.appendChild(option);
+                });
+                poseVarietyGroup.style.display = 'block';
+            } else {
+                poseVarietyGroup.style.display = 'none';
+            }
+        });
+
+        function generatePrompt() {
+            const initialPrompt = document.getElementById('initialPrompt').value.trim();
+            const angle = document.getElementById('angleSelect').value;
+            const lighting = document.getElementById('lightingSelect').value;
+            const imageType = document.getElementById('imageTypeSelect').value;
+            const position = document.getElementById('positionSelect').value;
+            const poseVariety = document.getElementById('poseVarietySelect').value;
+            const gesture = document.getElementById('gestureSelect').value;
+            const gazeDirection = document.getElementById('gazeDirectionSelect').value;
+            const emotionalExpression = document.getElementById('emotionalExpressionSelect').value;
+            const dynamicGaze = document.getElementById('dynamicGazeSelect').value;
+            const technicalGaze = document.getElementById('technicalGazeSelect').value;
+            const industry = document.getElementById('industrySelect').value;
+            const colorGrading = document.getElementById('colorGradingSelect').value;
+            const cameraSettings = document.getElementById('cameraSettingsSelect').value;
+            const lightingSetup = document.getElementById('lightingSetupSelect').value;
+            const targetAudience = document.getElementById('targetAudienceSelect').value;
+            const solidBackground = document.getElementById('solidBackgroundSelect').value;
+            const gradientBackground = document.getElementById('gradientBackgroundSelect').value;
+            const abstractBackground = document.getElementById('abstractBackgroundSelect').value;
+            const materialBackground = document.getElementById('materialBackgroundSelect').value;
+            const naturalBackground = document.getElementById('naturalBackgroundSelect').value;
+            const studioShape = document.getElementById('studioShapeSelect').value;
+            const studioLighting = document.getElementById('studioLightingSelect').value;
+            const studioProps = document.getElementById('studioPropsSelect').value;
+            const fileFormat = document.getElementById('fileFormatSelect').value;
+            const resolution = document.getElementById('resolutionSelect').value;
+            const aspectRatio = document.getElementById('aspectRatioSelect').value;
+            const moodAtmosphere = document.getElementById('moodAtmosphereSelect').value;
+            const quickPreset = document.getElementById('quickPresetSelect').value;
+            const popularCombos = document.getElementById('popularCombosSelect').value;
+            const studioLightingCombos = document.getElementById('studioLightingCombosSelect').value;
+            
+            if (!initialPrompt) {
+                alert('Silahkan masukkan prompt awal terlebih dahulu!');
+                return;
+            }
+            
+            let promptParts = [initialPrompt];
+            
+            if (angle) promptParts.push(angle);
+            if (lighting) promptParts.push(lighting);
+            if (imageType) promptParts.push(imageType);
+            if (poseVariety) promptParts.push(poseVariety);
+            else if (position) promptParts.push(position);
+            if (gesture) promptParts.push(gesture);
+            if (gazeDirection) promptParts.push(gazeDirection);
+            if (emotionalExpression) promptParts.push(emotionalExpression);
+            if (dynamicGaze) promptParts.push(dynamicGaze);
+            if (technicalGaze) promptParts.push(technicalGaze);
+            if (industry) promptParts.push(industry);
+            if (colorGrading) promptParts.push(colorGrading);
+            if (cameraSettings) promptParts.push(cameraSettings);
+            if (lightingSetup) promptParts.push(lightingSetup);
+            if (targetAudience) promptParts.push(targetAudience);
+            if (solidBackground) promptParts.push(solidBackground);
+            if (gradientBackground) promptParts.push(gradientBackground);
+            if (abstractBackground) promptParts.push(abstractBackground);
+            if (materialBackground) promptParts.push(materialBackground);
+            if (naturalBackground) promptParts.push(naturalBackground);
+            if (studioShape) promptParts.push(studioShape);
+            if (studioLighting) promptParts.push(studioLighting);
+            if (studioProps) promptParts.push(studioProps);
+            if (fileFormat) promptParts.push(fileFormat);
+            if (resolution) promptParts.push(resolution);
+            if (aspectRatio) promptParts.push(aspectRatio);
+            if (moodAtmosphere) promptParts.push(moodAtmosphere);
+            if (quickPreset) promptParts.push(quickPreset);
+            if (popularCombos) promptParts.push(popularCombos);
+            if (studioLightingCombos) promptParts.push(studioLightingCombos);
+            
+            const finalPrompt = promptParts.join(', ');
+            document.getElementById('finalPrompt').textContent = finalPrompt;
+        }
+
+        function copyToClipboard() {
+            const output = document.getElementById('finalPrompt');
+            if (!output.textContent || output.textContent.trim() === '') {
+                alert('Tidak ada prompt untuk disalin!');
+                return;
+            }
+            
+            const textarea = document.createElement('textarea');
+            textarea.value = output.textContent;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            // Visual feedback
+            const copyBtn = document.querySelector('.copy-btn');
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = 'DISALIN!';
+            setTimeout(() => {
+                copyBtn.textContent = originalText;
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
